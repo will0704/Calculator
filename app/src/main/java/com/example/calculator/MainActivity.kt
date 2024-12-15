@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                     if (secondValue != 0.0) {
                         firstValue / secondValue
                     } else {
-                        tvDisplay.text = "Error"
+                        tvDisplay.text = "undefined"
                         clear()
                         return
                     }
