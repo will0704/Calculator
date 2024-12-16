@@ -1,5 +1,6 @@
 package com.example.calculator
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -12,6 +13,7 @@ class MainActivity : AppCompatActivity() {
     private var input = ""
     private var operator = ""
     private var firstOperand = ""
+    private var history: MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +40,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnEqual).setOnClickListener { calculateResult() }
         findViewById<Button>(R.id.btnClear).setOnClickListener { clear() }
         findViewById<Button>(R.id.btnBackspace).setOnClickListener { backspace() }
+
+        findViewById<Button>(R.id.btnHistory).setOnClickListener { showHistory() }
     }
 
     private fun appendNumber(number: String) {
@@ -96,6 +100,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             tvDisplay.text = result.toString()
+            history.add("$currentEquation = $result")
             firstOperand = result.toString()
             input = ""
             operator = ""
@@ -117,5 +122,11 @@ class MainActivity : AppCompatActivity() {
             currentEquation = currentEquation.dropLast(1)
             tvDisplay.text = if (input.isEmpty()) "0" else currentEquation
         }
+    }
+
+    private fun showHistory() {
+        val intent = Intent(this, HistoryActivity::class.java)
+        intent.putStringArrayListExtra("history", ArrayList(history))
+        startActivity(intent)
     }
 }
