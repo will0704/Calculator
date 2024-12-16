@@ -4,18 +4,24 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
     private lateinit var tvDisplay: TextView
     private var currentEquation: String = ""
     private var input = ""
     private var operator = ""
     private var firstOperand = ""
+    private lateinit var calculatorApiService: CalculatorApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Initialize API service
+        calculatorApiService = CalculatorApiService()
 
         tvDisplay = findViewById(R.id.tvDisplay)
 
@@ -30,7 +36,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnDot).setOnClickListener { appendDot() }
-
         findViewById<Button>(R.id.btnAdd).setOnClickListener { setOperator("+") }
         findViewById<Button>(R.id.btnSubtract).setOnClickListener { setOperator("-") }
         findViewById<Button>(R.id.btnMultiply).setOnClickListener { setOperator("*") }
@@ -95,11 +100,40 @@ class MainActivity : AppCompatActivity() {
                 else -> firstValue
             }
 
+            // Save calculation to backend
+            saveCalculation(
+                expression = "$firstValue $operator $secondValue",
+                result = result
+            )
+
             tvDisplay.text = result.toString()
             firstOperand = result.toString()
             input = ""
             operator = ""
             currentEquation = result.toString()
+        }
+    }
+
+    private fun saveCalculation(expression: String, result: Double) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                calculatorApiService.saveCalculation(
+                    Calculation(
+                        expression = expression,
+                        result = result,
+                        deviceId = android.provider.Settings.Secure.getString(
+                            contentResolver,
+                            android.provider.Settings.Secure.ANDROID_ID
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // You might want to show an error message to the user
+                runOnUiThread {
+                    // Handle error (optional)
+                }
+            }
         }
     }
 
